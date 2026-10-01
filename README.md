@@ -1,14 +1,16 @@
 # DKHUB67
 
-## DKHUB EggWarpUI v2.4
+## DKHUB EggWarpUI v2.5
 
-ไฟล์หลัก: `DKHUBV2_2.4.lua`
+ไฟล์หลัก: `DKHUBV2_2.5.lua`
 
-สคริปต์จะพยายามโหลดภาพจากไฟล์ local ก่อน หากไม่มีไฟล์ จะดาวน์โหลดจาก GitHub Raw อัตโนมัติด้วย `game:HttpGet` และบันทึกด้วย `writefile` จากนั้นใช้ `getcustomasset`/`getsynasset` แสดงภาพใน UI
+ใน v2.5 ตัดไข่ต่อไปนี้ออกจาก `EggNames` แล้ว:
 
-ภาพที่เชื่อมกับสคริปต์:
+- White Egg
+- Brown Egg
+- Cracked Egg
+- Easter Egg
+- Stone Egg
+- Leaf Egg
 
-- `DKHUB_Logo.png`
-- `DKHUB_Eggs/*.png`
-
-ถ้า executor รองรับฟังก์ชันดังกล่าว เมื่อลิงก์สคริปต์ไปรันครั้งแรก ระบบจะดาวน์โหลดภาพเอง ไม่ต้องเตรียมโฟลเดอร์ภาพด้วยมือ
+ภาพไข่ทั้งหมดถูกเก็บไว้ใน `DKHUB_Eggs/` และสคริปต์จะใช้ไฟล์ local ก่อน หากไม่พบไฟล์จะดาวน์โหลดจาก GitHub Raw อัตโนมัติด้วย `game:HttpGet` แล้วบันทึกด้วย `writefile` เพื่อแสดงผ่าน `getcustomasset`/`getsynasset`
