@@ -567,10 +567,13 @@ local function autoCycle()
     for index, item in ipairs(items) do
         if not autoEnabled then break end
         setStatus(string.format("ออโต้: เก็บใบที่ %d/%d", index, #items), ACCENT2)
-        if warpToEgg(item.cfg, true) then
-            sendWebhook(item.cfg)
-            task.wait(0.35)
+        local collected = warpToEgg(item.cfg, true)
+        if not collected then
+            setStatus("เก็บใบปัจจุบันไม่สำเร็จ — หยุดรอบเพื่อไม่ข้ามไข่", ACCENT2)
+            break
         end
+        sendWebhook(item.cfg)
+        task.wait(0.35)
     end
     local waitTime = math.max(1, Config.AutoInterval - (os.clock() - started))
     if autoEnabled then setStatus(string.format("ออโต้รอบถัดไปใน %.0f วินาที", waitTime), GREEN); task.wait(waitTime) end
