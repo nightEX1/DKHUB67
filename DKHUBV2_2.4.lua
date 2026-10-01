@@ -3,11 +3,11 @@
     - รายการไข่ active เรียงตามระยะทาง
     - วาร์ปไปหาไข่ -> เรียก Pickup prompt -> กลับฐาน
     - UI ใหม่: ลากได้, รีเฟรช, สถานะ, ปุ่มป้องกันกดซ้ำ, โลโก้ DKHUB
-    - โหลดภาพไข่ local ที่ดาวน์โหลดไว้ผ่าน getcustomasset / getsynasset
+    - ดาวน์โหลดภาพจาก GitHub อัตโนมัติ แล้วแสดงผ่าน getcustomasset / getsynasset
 
-    วิธีใช้ภาพโลโก้:
-    วาง DKHUB_Logo.png ไว้โฟลเดอร์เดียวกับไฟล์สคริปต์ของ executor
-    หาก executor รองรับ getcustomasset หรือ getsynasset ระบบจะโหลดให้อัตโนมัติ
+    ระบบภาพ:
+    ถ้าไม่มีไฟล์ local สคริปต์จะดาวน์โหลดจาก GitHub ด้วย game:HttpGet
+    แล้วบันทึกเป็น local asset ด้วย writefile ก่อนแสดงใน ImageLabel
 ]]
 
 local Players = game:GetService("Players")
@@ -66,12 +66,39 @@ local function getAsset(fileName)
     return nil
 end
 
+local function httpGet(url)
+    local ok, body = pcall(function() return game:HttpGet(url) end)
+    if ok and type(body) == "string" and #body > 0 then return body end
+    if type(request) == "function" then
+        local okRequest, response = pcall(request, {Url = url, Method = "GET"})
+        if okRequest and response and (response.Success or response.StatusCode == 200) then
+            return response.Body
+        end
+    end
+    return nil
+end
+
+local function ensureLocalAsset(fileName, url)
+    if type(isfile) == "function" then
+        local exists = false
+        pcall(function() exists = isfile(fileName) end)
+        if exists then return fileName end
+    end
+    if type(writefile) ~= "function" then return nil end
+    if type(makefolder) == "function" and fileName:find("/") then
+        pcall(makefolder, "DKHUB_Eggs")
+    end
+    local body = httpGet(url)
+    if not body then return nil end
+    local ok = pcall(writefile, fileName, body)
+    return ok and fileName or nil
+end
+
 local function imageForEgg(name)
     local safe = tostring(name or "Egg"):gsub("[^%w%-]", "_")
-    -- ใช้ภาพ local ก่อน แล้ว fallback ไปยังไฟล์ใน GitHub รีโพซิทอรี
-    return getAsset("DKHUB_Eggs/" .. safe .. ".png")
-        or getAsset(safe .. ".png")
-        or RemoteBase .. "DKHUB_Eggs/" .. safe .. ".png"
+    local fileName = "DKHUB_Eggs/" .. safe .. ".png"
+    local localFile = ensureLocalAsset(fileName, RemoteBase .. fileName) or fileName
+    return getAsset(localFile) or getAsset(safe .. ".png") or ""
 end
 
 local ActiveEggs = RS:WaitForChild("ServerData"):WaitForChild("ActiveEggs")
@@ -186,7 +213,8 @@ icon.AutoButtonColor = false
 icon.Parent = gui
 corner(icon, 29)
 outline(icon, ACCENT, 2, 0.05)
-local logoAsset = getAsset(Config.LogoFile) or RemoteBase .. Config.LogoFile
+local logoFile = ensureLocalAsset(Config.LogoFile, RemoteBase .. Config.LogoFile) or Config.LogoFile
+local logoAsset = getAsset(logoFile)
 if logoAsset then
     icon.Image = logoAsset
     icon.ScaleType = Enum.ScaleType.Crop
